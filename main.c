@@ -44,15 +44,16 @@ int main(void)
 	bool pause = false;
 	bool close = false;
 	bool clicking =  false;
+	bool shift = false;
 
 	drawing_context context = create_context("BinaryAutomata");
 	SDL_Event event;
 
 	grid screen;
-	screen.width = 80;
-	screen.height = 60;
-	screen.size = 1500;
-	screen.buffer = malloc(1500);
+	screen.width = 700;
+	screen.height = 600;
+	screen.size = (screen.width*screen.height)/8;
+	screen.buffer = malloc(screen.size);
 	clear_buffer(&screen);
 
 	
@@ -64,6 +65,14 @@ int main(void)
 
 			switch(event.type)
 			{
+				case SDL_MOUSEMOTION:
+					if (shift && clicking)
+					{
+						context.curr_camera.pos.x += (float)-1.0f*((float)event.motion.xrel/(float)2.0f);
+						context.curr_camera.pos.y += (float)-1.0f*((float)event.motion.yrel/(float)2.0f);
+					}
+					break;
+
 				case SDL_MOUSEBUTTONDOWN:
 					if (event.button.button == SDL_BUTTON_LEFT)
 						clicking = true;
@@ -75,12 +84,18 @@ int main(void)
 					break;
 				
 				case SDL_MOUSEWHEEL:
-					context.curr_camera.zoom += event.wheel.y;
+					context.curr_camera.zoom += ( event.wheel.y );
 					break;
 
 				case SDL_KEYDOWN:
 					if (event.key.keysym.sym == SDLK_SPACE)
 						pause ^= 1u;
+					if (event.key.keysym.sym == SDLK_LSHIFT)
+						shift = true;
+					break;
+				case SDL_KEYUP:
+					if (event.key.keysym.sym == SDLK_LSHIFT)
+						shift = false;
 					break;
 
 				case SDL_QUIT:
@@ -91,7 +106,7 @@ int main(void)
 
 		if (close) break;
 
-		if (clicking)
+		if (clicking && !shift)
 		{
 			int mousex,mousey;
 			SDL_GetMouseState(&mousex,&mousey);

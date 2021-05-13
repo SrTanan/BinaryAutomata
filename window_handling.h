@@ -20,6 +20,6 @@ typedef struct{
 	SDL_Rect tmp_rect;
 }drawing_context;
 
-void scale_camera(drawing_context* context);
+void update_camera(drawing_context* context);
 drawing_context create_context(const char* title);
 void drawing_routine(grid curr_grid, drawing_context *context);
