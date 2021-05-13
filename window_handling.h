@@ -6,10 +6,5 @@ typedef struct{
 	SDL_Renderer* curr_renderer;
 }drawing_context;
 
-typedef struct{
-	grid* grid;
-	pthread_mutex_t* lock;
-	bool close;
-}data_bus;
-
-void* run_thread(void* args);
+drawing_context createContext(const char* title);
+void drawing_routine(grid* curr_grid, drawing_context *context);
