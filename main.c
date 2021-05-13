@@ -1,12 +1,13 @@
 #include "byteops.h"
 #include "window_handling.h"
-#include <time.h>
 
 void conway_turn(grid* input)
 {	
 	grid next_turn;
 	next_turn.width = input->width;
 	next_turn.height = input->height;
+	next_turn.size = input->size;
+	next_turn.buffer =  malloc(next_turn.size);
 
 	clear_buffer(&next_turn);
 
@@ -30,49 +31,85 @@ void conway_turn(grid* input)
 		}
 	}
 
-	for (int i=0; i<sizeof(next_turn.buffer); i++)
+	for (int i=0; i<next_turn.size; i++)
 	{
 		input->buffer[i] = next_turn.buffer[i];
-	}	
+	}
+	free(next_turn.buffer);
 }
 
 int main(void)
 {
-	grid screen;
-	screen.width = 80;
-	screen.height = 24;
-	clear_buffer(&screen);
-
-	set_bit(&screen,39,12,true);
-	set_bit(&screen,40,12,true);
-	set_bit(&screen,41,12,true);
 
 	bool pause = false;
 	bool close = false;
+	bool clicking =  false;
 
-
-	drawing_context context = createContext("BinaryAutomata");
+	drawing_context context = create_context("BinaryAutomata");
 	SDL_Event event;
 
+	grid screen;
+	screen.width = 80;
+	screen.height = 60;
+	screen.size = 1500;
+	screen.buffer = malloc(1500);
+	clear_buffer(&screen);
+	printf("Test.");
+
+	//set_bit(&screen,39,12,true);
+	//set_bit(&screen,40,12,true);
+	//set_bit(&screen,41,12,true);
+
+	
 	for (;;)
 	{
 
-
 		while(SDL_PollEvent(&event))
 		{
-			if(event.type == SDL_QUIT) 
+
+			switch(event.type)
 			{
-				close = true;
+				case SDL_MOUSEBUTTONDOWN:
+					if (event.button.button == SDL_BUTTON_LEFT)
+						clicking = true;
+					break;
+				
+				case SDL_MOUSEBUTTONUP:
+					if (event.button.button == SDL_BUTTON_LEFT)
+						clicking = false;
+					break;
+
+				case SDL_KEYDOWN:
+					if (event.key.keysym.sym == SDLK_SPACE)
+						pause ^= 1u;
+					break;
+
+				case SDL_QUIT:
+					close = true;
+					break;
 			}
 		}
 
 		if (close) break;
 
-		if (!pause) conway_turn(&screen);	
 		
-		drawing_routine(&screen, &context);
-	}
+		if (clicking)
+		{
+			int mousex,mousey;
+			SDL_GetMouseState(&mousex,&mousey);
 
+			int x = context.curr_camera.pos.x+(mousex/context.curr_camera.cell_size.x);
+			int y = context.curr_camera.pos.y+(mousey/context.curr_camera.cell_size.y);
+
+			if (x<screen.width && y<screen.height)
+				toggle_bit(&screen,x,y);
+		}
+
+		if (!pause) conway_turn(&screen);
+		
+		drawing_routine(screen, &context);
+	}
+	
 	SDL_DestroyWindow(context.curr_window);
 	SDL_Quit();
 

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 typedef enum
 {
 	true=1,false=0
@@ -5,7 +6,8 @@ typedef enum
 
 typedef struct
 {
-	unsigned char buffer[512];
+	unsigned char* buffer;
+	size_t size;
 	int width;
 	int height;
 }grid;

@@ -17,7 +17,7 @@ bool get_bit(grid* input, int x, int y)
 
 void clear_buffer(grid* input_buffer)
 {
-	for (int i=0; i<sizeof(input_buffer->buffer); i++)
+	for (int i=0; i<input_buffer->size; i++)
 	{
 		input_buffer->buffer[i] = 0;
 	}
