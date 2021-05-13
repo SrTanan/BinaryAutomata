@@ -11,9 +11,23 @@ void scale_camera(drawing_context* context)
 		curr_width = 800;
 	if (curr_height <=0)
 		curr_height = 600;
+	if (curr_camera->zoom == 0)
+		curr_camera->zoom =-0.1f;
 
-	curr_camera->cell_size.x = (curr_width/curr_camera->scale_factor.x);
-	curr_camera->cell_size.y = (curr_height/curr_camera->scale_factor.y);
+	if (curr_camera->zoom > 0)
+	{
+		curr_camera->scale_factor.x = (curr_width/20)*curr_camera->zoom;
+		curr_camera->scale_factor.y = (curr_height/20)*curr_camera->zoom;
+	}
+	else
+	{
+		curr_camera->scale_factor.x = (int)((float)curr_width/(20.0f+(curr_camera->zoom*-20.0f)));
+		curr_camera->scale_factor.y = (int)((float)curr_height/(20.0f+(curr_camera->zoom*-20.0f)));
+	}
+
+
+	curr_camera->cell_size.x = (int)((int)curr_width/(int)curr_camera->scale_factor.x);
+	curr_camera->cell_size.y = (int)((int)curr_height/(int)curr_camera->scale_factor.y);
 	
 }
 
@@ -33,8 +47,7 @@ drawing_context create_context(const char* title)
 
 	output.curr_camera.pos.x =0;
 	output.curr_camera.pos.y = 0;
-	output.curr_camera.scale_factor.x = 40;
-	output.curr_camera.scale_factor.y = 30;
+	output.curr_camera.zoom = 1;
 
 	scale_camera(&output);
 
@@ -72,18 +85,5 @@ void drawing_routine(grid curr_grid, drawing_context *context)
 		}
 	}
 	
-/*
-	SDL_Rect tmp_rect = {0,0,10,10};
-	for (int i=0; i< curr_grid.width; i++)
-		for (int j=0; j< curr_grid.height; j++)
-		{
-			if (get_bit(&curr_grid,i,j))
-			{
-				tmp_rect.x = i*tmp_rect.w;
-				tmp_rect.y = j*tmp_rect.h;
-				SDL_RenderDrawRect(context->curr_renderer, &tmp_rect);
-			}
-		}
-*/
 	SDL_RenderPresent(context->curr_renderer);	
 }

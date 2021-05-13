@@ -10,6 +10,7 @@ typedef struct{
 	vector pos;
 	vector cell_size;
 	vector scale_factor;
+	float zoom;
 }camera;
 
 typedef struct{

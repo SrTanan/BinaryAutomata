@@ -54,11 +54,6 @@ int main(void)
 	screen.size = 1500;
 	screen.buffer = malloc(1500);
 	clear_buffer(&screen);
-	printf("Test.");
-
-	//set_bit(&screen,39,12,true);
-	//set_bit(&screen,40,12,true);
-	//set_bit(&screen,41,12,true);
 
 	
 	for (;;)
@@ -78,6 +73,10 @@ int main(void)
 					if (event.button.button == SDL_BUTTON_LEFT)
 						clicking = false;
 					break;
+				
+				case SDL_MOUSEWHEEL:
+					context.curr_camera.zoom += event.wheel.y;
+					break;
 
 				case SDL_KEYDOWN:
 					if (event.key.keysym.sym == SDLK_SPACE)
@@ -92,7 +91,6 @@ int main(void)
 
 		if (close) break;
 
-		
 		if (clicking)
 		{
 			int mousex,mousey;
