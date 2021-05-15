@@ -38,11 +38,12 @@ void* conway_turn(void* input_args) //Note: We don't need to use mutexes for thi
 		}
 	}
 
+	/*
 	for (int i=0; i<(next_turn->width*next_turn->height)/8; i++)
 	{
 		args->grid->buffer[i+args->begin] = next_turn->buffer[i];
 	}
-	free(next_turn->buffer);
+	free(next_turn->buffer);*/
 }
 
 int main(void)
@@ -57,8 +58,8 @@ int main(void)
 	SDL_Event event;
 
 	grid screen;
-	screen.width = 1600;
-	screen.height = 1200;
+	screen.width = 800;
+	screen.height = 600;
 	screen.size = (screen.width*screen.height)/8;
 	screen.buffer = malloc(screen.size);
 	clear_buffer(&screen);
@@ -143,7 +144,7 @@ int main(void)
 				threads_args[i].output = &test_array[i];
 				threads_args[i].output->width = screen.width;
 				threads_args[i].output->height = (screen.height/thread_amount);
-				threads_args[i].output->size = (screen.width*(screen.height/thread_amount));
+				threads_args[i].output->size = (screen.width*(screen.height/thread_amount))/8;
 				threads_args[i].output->buffer =  malloc(threads_args[i].output->size);
 
 				
@@ -153,6 +154,14 @@ int main(void)
 			for (int i=0; i<thread_amount; i++)
 			{
 				pthread_join(threads[i], NULL);
+			}
+
+			for (int i=0; i<thread_amount; i++)
+			{
+				for (int j=0; j<threads_args[i].output->size; j++)
+				{
+					screen.buffer[j+threads_args[i].begin] = threads_args[i].output->buffer[j];
+				}
 			}
 
 			free(threads_args);
