@@ -37,13 +37,6 @@ void* conway_turn(void* input_args) //Note: We don't need to use mutexes for thi
 			else if (neighbour_count ==  3) set_bit(args->output, x, y, true);
 		}
 	}
-
-	/*
-	for (int i=0; i<(next_turn->width*next_turn->height)/8; i++)
-	{
-		args->grid->buffer[i+args->begin] = next_turn->buffer[i];
-	}
-	free(next_turn->buffer);*/
 }
 
 int main(void)
@@ -54,17 +47,36 @@ int main(void)
 	bool clicking =  false;
 	bool shift = false;
 
-	drawing_context context = create_context("BinaryAutomata");
-	SDL_Event event;
-
 	grid screen;
 	screen.width = 800;
 	screen.height = 600;
 	screen.size = (screen.width*screen.height)/8;
 	screen.buffer = malloc(screen.size);
 	clear_buffer(&screen);
-	
+
+	const int thread_amount = 8;
 	pthread_mutex_t data_lock = PTHREAD_MUTEX_INITIALIZER;
+	thread_args threads_args[thread_amount];
+	pthread_t threads[thread_amount];
+	grid test_array[thread_amount];
+
+	for (int i=0; i<thread_amount; i++)
+	{
+		
+		threads_args[i].grid = &screen;
+		threads_args[i].begin = (screen.size/thread_amount)*i;
+		threads_args[i].end = (screen.size/thread_amount)*(i+1);
+		threads_args[i].lock = &data_lock;
+		
+		threads_args[i].output = &test_array[i];
+		threads_args[i].output->width = screen.width;
+		threads_args[i].output->height = (screen.height/thread_amount);
+		threads_args[i].output->size = (screen.width*(screen.height/thread_amount))/8;
+		threads_args[i].output->buffer =  malloc(threads_args[i].output->size);
+	}
+
+	drawing_context context = create_context("BinaryAutomata");
+	SDL_Event event;
 	
 	for (;;)
 	{
@@ -129,25 +141,8 @@ int main(void)
 		
 		if (!pause)
 		{
-			thread_args *threads_args = malloc(sizeof(thread_args)*8);
-			pthread_t* threads = malloc(sizeof(pthread_t)*8);
-			grid test_array[8];
-			int thread_amount = sizeof(test_array)/sizeof(grid);
 			for (int i=0; i<thread_amount; i++)
-			{
-				
-				threads_args[i].grid = &screen;
-				threads_args[i].begin = (screen.size/thread_amount)*i;
-				threads_args[i].end = (screen.size/thread_amount)*(i+1);
-				threads_args[i].lock = &data_lock;
-				
-				threads_args[i].output = &test_array[i];
-				threads_args[i].output->width = screen.width;
-				threads_args[i].output->height = (screen.height/thread_amount);
-				threads_args[i].output->size = (screen.width*(screen.height/thread_amount))/8;
-				threads_args[i].output->buffer =  malloc(threads_args[i].output->size);
-
-				
+			{				
 				pthread_create(&threads[i],NULL,conway_turn,&threads_args[i]);
 			}
 
@@ -163,9 +158,6 @@ int main(void)
 					screen.buffer[j+threads_args[i].begin] = threads_args[i].output->buffer[j];
 				}
 			}
-
-			free(threads_args);
-			free(threads);
 		}
 
 		drawing_routine(screen, &context);

@@ -2,17 +2,24 @@
 
 void set_bit(grid* input, int x, int y, bool val)
 {
-	input->buffer[((input->width/8)*y)+(x/8)] ^= (-(unsigned char)val ^ input->buffer[((input->width/8)*y)+(x/8)]) & (1u << x-((x/8)*8));
+	int x_byte = x/8;
+	int curr_byte = ((input->width/8)*y)+x_byte;
+	input->buffer[curr_byte] ^= (-(unsigned char)val ^ input->buffer[curr_byte]) & (1u << x-(x_byte*8));
 }
 
 void toggle_bit(grid* input, int x, int y)
 {
-	input->buffer[((input->width/8)*y)+(x/8)] ^= (1u<<x-((x/8)*8));
+	int x_byte = x/8;
+	int curr_byte = ((input->width/8)*y)+x_byte;
+	input->buffer[curr_byte] ^= (1u<<x-(x_byte*8));
 }
 
 bool get_bit(grid* input, int x, int y)
 {
-	return ( input->buffer[((input->width/8)*y)+(x/8)] & (1u << (x-((x/8)*8))) ) ? true : false;
+	int x_byte = x/8;
+	int curr_byte = ((input->width/8)*y)+x_byte;	
+
+	return ( input->buffer[curr_byte] & (1u << (x-(x_byte*8))) ) ? true : false;
 }
 
 void clear_buffer(grid* input_buffer)
@@ -34,24 +41,24 @@ unsigned char count_bits(unsigned char byte)
 	return LOOKUP_TABLE[byte & 0x0F] + LOOKUP_TABLE[byte >> 4];
 }
 
-unsigned char get_neighbours(grid* map, int x, int y)
+unsigned char get_neighbours(grid* map, int x, int y) // This actually restrains x and y, but it's a good compromise for performance
 {
 	unsigned char output_byte = 0;
-	unsigned char index = 0;
 
-	for (int i=x-1; i<x+2; i++)
+	if (x+1<map->width && x-1 > 0)
 	{
-		if (i<0) continue;
-		if (i>map->width) break;
-
-		for (int j=y-1; j<y+2; j++)
+		if (y+1<map->height && y-1 > 0)
 		{
-			if (j<0) continue;
-			if (j>map->height) break;
-			if (i==x && j==y) continue;
-			
-			output_byte |= ( get_bit(map,i,j) << index);
-			index++;
+
+			output_byte |= get_bit(map,x-1,y-1);
+			output_byte |= get_bit(map,x-1,y) << 1;
+			output_byte |= get_bit(map,x-1,y+1) << 2;
+			output_byte |= get_bit(map,x,y-1) << 3;
+			output_byte |= get_bit(map,x+1,y-1) << 4;
+			output_byte |= get_bit(map,x+1,y) << 5;
+			output_byte |= get_bit(map,x,y+1) << 6;
+			output_byte |= get_bit(map,x+1,y+1) << 7;
+			return output_byte;
 		}
 	}
 	
